@@ -5,6 +5,7 @@ import edu.oregonstate.mist.api.Resource
 import edu.oregonstate.mist.api.InfoResource
 import edu.oregonstate.mist.api.AuthenticatedUser
 import edu.oregonstate.mist.api.BasicAuthenticator
+import edu.oregonstate.mist.api.NullHealthCheck
 import edu.oregonstate.mist.webapiskeleton.resources.SampleResource
 import io.dropwizard.Application
 import io.dropwizard.setup.Bootstrap
@@ -41,6 +42,8 @@ class SkeletonApplication extends Application<Configuration> {
                                 new BasicAuthenticator(configuration.getCredentialsList()),
                                 'SkeletonApplication',
                                 AuthenticatedUser.class)))
+        // Shut the health check warning up
+        environment.healthChecks().register("null", new NullHealthCheck())
     }
 
     /**

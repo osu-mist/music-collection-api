@@ -1,83 +1,192 @@
 swagger: '2.0'
+
 info:
-  title: Web API Skeleton
-  description: Skeleton for Dropwizard Web APIs
-  version: '0.0'
-  license:
-    name: GNU Affero General Public License Version 3
-    url: http://www.gnu.org/licenses/agpl-3.0.en.html
-externalDocs:
-  description: GitHub Repository
-  url: https://github.com/osu-mist/web-api-skeleton
-host: localhost
-schemes:
-  - http
-basePath: /api/v0
-consumes:
-  - text/plain
-produces:
-  - text/plain
+  title: Music Collection API
+  version: "0.1"
+  
+#consumes: [ 'application/json' ]
+produces: [ 'application/json' ]
+
 paths:
-  /:
-    get:
-      summary: Get information
-      description: Build and runtime information about the application.
-      responses:
-        200:
-          description: Object containing information
-          schema:
-            $ref: '#/definitions/Info'
-  /sample:
-    get:
-      summary: Get message
-      description: This is a sample resource that returns a short message.
-      responses:
-        200:
-          description: A short message
-          schema:
-            type: string
-        404:
-          description: Not found
-          schema:
-            $ref: '#/definitions/Error'
+  '/shelf':
     post:
-      summary: Post message
-      description: This is a sample resource that returns the message it receives.
+      description: |
+        Create a shelf.
       parameters:
-        - name: message
-          in: body
-          schema:
-            type: string
-          required: true
+        - name: name
+          in: formData
+          type: string
+          required: false
+          description: Name of the shelf
       responses:
         200:
-          description: The message received
+          description: Successful response
+    
+  '/shelf/{id}':
+    get:
+      description: |
+        GET returns details about a shelf.
+      parameters:
+        - name: id
+          in: path
+          type: number
+          required: true
+          description: ID of the shelf
+      responses:
+        200:
+          description: Successful response
+          schema: {$ref: '#/definitions/shelf'}
+         
+    post:
+      description: |
+        POST adds an album to the shelf.
+      parameters:
+        - name: id
+          in: path
+          type: number
+          required: true
+          description: ID of the shelf
+        - name: album_id
+          in: formData
+          type: number
+          required: true
+          description: ID of the album to add
+      responses:
+        201:
+          description:
+            Success
+
+  '/shelf/{id}/albums':
+    get:
+      description: |
+        GET returns a list of records for every album on the shelf.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the shelf
+          required: true
+          type: number
+      responses:
+        200:
+          description: Successful response
           schema:
-            type: string
+            type: array
+            items: {$ref: '#/definitions/album'}
+          
+  '/album/{id}':
+    get:
+      description:
+        GET the details about an album.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the album
+          required: true
+          type: number
+      responses:
+        200:
+          description: Successful response
+          schema: {$ref: '#/definitions/album'}
+          examples:
+            application/json:
+              {
+                index: 1,
+                artist: "Pink Floyd",
+                title: "Dark Side of the Moon",
+                date: "1970",
+                edition: "30th anniversary SACD",
+              }
+    put:
+      description: |
+        PUT updates an album.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the album
+          required: true
+          type: number
+      responses:
+        200:
+          description: Successful response
         404:
-          description: Not found
-          schema:
-            $ref: '#/definitions/Error'
+          description: Album does not exist
+    delete:
+      description: |
+        DELETE removes an album from every shelf it is on. 
+      parameters:
+        - name: id
+          in: path
+          description: ID of the album
+          required: true
+          type: number
+      responses:
+        204:
+          description: Successful deletion
+        404:
+          description: Album does not exist
+  
+  '/album':
+    post:
+      description: |
+        Create a new album.
+      consumes:
+        - application/json
+      parameters:
+        - name: album
+          in: body
+          description: Album object
+          required: true
+          schema: {$ref: '#/definitions/album'}
+      responses:
+        201:
+          description: Album created
+          headers:
+            Location: {description: 'URL of the album', type: string}
+
+
 definitions:
-  Info:
+  shelf:
+    title: Shelf
+    type: object
     properties:
+      id:
+        type: number
+        description: ID of the shelf
       name:
         type: string
-      time:
-        type: integer
-      commit:
+        description: Name of the shelf
+      url:
         type: string
-      documentation:
-        type: string
-  Error:
+        description: URL of the shelf resource
+      album_urls:
+        type: array
+        description: List of album resource URLS
+        items:
+          type: string
+  album:
+    title: Album
+    type: object
     properties:
+      id:
+        type: number
+        description: ID of the album
+      url:
+        type: string
+        description: URL of the album resource
+      title:
+        type: string
+        description: Name of the album
+      artist:
+        type: string
+        description: Name of the artist
+      date:
+        type: string
+        description: |
+          Date the album was originally released.
+          YYYY, YYYY-MM, or YYYY-MM-DD.
+      edition:
+        type: string
+        description: A brief note about the format or (re)release date
       status:
-        type: integer
-      developerMessage:
         type: string
-      userMesage:
-        type: string
-      code:
-        type: integer
-      details:
-        type: string
+        description: 'One of "want", "have", or the empty string.'

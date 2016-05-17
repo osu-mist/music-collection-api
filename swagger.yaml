@@ -3,7 +3,7 @@ swagger: '2.0'
 info:
   title: Music Collection API
   version: "0.1"
-  
+
 #consumes: [ 'application/json' ]
 produces: [ 'application/json' ]
 
@@ -13,15 +13,24 @@ paths:
       description: |
         Create a shelf.
       parameters:
-        - name: name
-          in: formData
-          type: string
-          required: false
-          description: Name of the shelf
+        - name: shelf
+          in: body
+          required: true
+          description: New shelf object. Only the name attribute is allowed.
+          schema:
+            title: Shelf
+            type: object
+            properties:
+              name:
+                type: string
+                description: The name of the new shelf
       responses:
         200:
           description: Successful response
-    
+        404:
+          description: Shelf does not exist
+          schema: {$ref: '#/definitions/error'}
+
   '/shelf/{id}':
     get:
       description: |
@@ -36,7 +45,30 @@ paths:
         200:
           description: Successful response
           schema: {$ref: '#/definitions/shelf'}
-         
+        404:
+          description: Shelf does not exist
+          schema: {$ref: '#/definitions/error'}
+
+  '/shelf/{id}/albums':
+    get:
+      description: |
+        GET returns a list of records for every album on the shelf.
+      parameters:
+        - name: id
+          in: path
+          description: ID of the shelf
+          required: true
+          type: number
+      responses:
+        200:
+          description: Successful response
+          schema:
+            type: array
+            items: {$ref: '#/definitions/album'}
+        404:
+          description: Shelf does not exist
+          schema: {$ref: '#/definitions/error'}
+
     post:
       description: |
         POST adds an album to the shelf.
@@ -56,23 +88,6 @@ paths:
           description:
             Success
 
-  '/shelf/{id}/albums':
-    get:
-      description: |
-        GET returns a list of records for every album on the shelf.
-      parameters:
-        - name: id
-          in: path
-          description: ID of the shelf
-          required: true
-          type: number
-      responses:
-        200:
-          description: Successful response
-          schema:
-            type: array
-            items: {$ref: '#/definitions/album'}
-          
   '/album/{id}':
     get:
       description:
@@ -96,6 +111,10 @@ paths:
                 date: "1970",
                 edition: "30th anniversary SACD",
               }
+        404:
+          description: Album does not exist
+          schema: {$ref: '#/definitions/error'}
+
     put:
       description: |
         PUT updates an album.
@@ -108,11 +127,14 @@ paths:
       responses:
         200:
           description: Successful response
+          schema: {$ref: '#/definitions/album'}
         404:
           description: Album does not exist
+          schema: {$ref: '#/definitions/error'}
+
     delete:
       description: |
-        DELETE removes an album from every shelf it is on. 
+        DELETE removes an album from every shelf it is on.
       parameters:
         - name: id
           in: path
@@ -124,7 +146,8 @@ paths:
           description: Successful deletion
         404:
           description: Album does not exist
-  
+          schema: {$ref: '#/definitions/error'}
+
   '/album':
     post:
       description: |
@@ -163,6 +186,7 @@ definitions:
         description: List of album resource URLS
         items:
           type: string
+
   album:
     title: Album
     type: object
@@ -190,3 +214,23 @@ definitions:
       status:
         type: string
         description: 'One of "want", "have", or the empty string.'
+
+  error:
+    title: Error
+    type: object
+    properties:
+      status:
+        type: number
+        description: HTTP status code
+      developerMessage:
+        type: string
+        description: Error message for developers
+      userMessage:
+        type: string
+        description: Error message for users
+      code:
+        type: number
+        description: Internal error code
+      details:
+        type: string
+        description: ???

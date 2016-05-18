@@ -47,10 +47,14 @@ authentication:
 ## Example Oracle configuration
 #
 #database:
+#  # These are the important bits
+#
 #  driverClass: oracle.jdbc.OracleDriver
 #  url: jdbc:oracle:thin:@(DESCRIPTION=(LOAD_BALANCE=ON) (ADDRESS=(PROTOCOL=TCP)(Host=db1.example.com)(Port=1521)) (ADDRESS=(PROTOCOL=TCP)(Host=db2.example.com)(Port=1521)) (CONNECT_DATA=(SERVICE_NAME=example.db)))
 #  user: Username
 #  password: Password
+#  validationQuery: "SELECT 1 FROM dual"
+#
 #  abandonWhenPercentageFull: 0
 #  alternateUsernamesAllowed: false
 #  commitOnReturn: false
@@ -70,7 +74,6 @@ authentication:
 #  maxConnectionAge: # none
 #  maxWaitForConnection: 1 # second
 #  minIdleTime: 1 # minute
-#  validationQuery: "SELECT 1 FROM dual"
 #  validationQueryTimeout: # none
 #  checkConnectionWhileIdle: true
 #  checkConnectionOnConnect: false

@@ -6,7 +6,7 @@ import edu.oregonstate.mist.api.InfoResource
 import edu.oregonstate.mist.api.AuthenticatedUser
 import edu.oregonstate.mist.api.BasicAuthenticator
 import edu.oregonstate.mist.api.NullHealthCheck
-import edu.oregonstate.mist.musicapi.resources.SampleResource
+import edu.oregonstate.mist.musicapi.resources.ShelfResource
 import io.dropwizard.Application
 import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
@@ -34,8 +34,8 @@ class MusicApplication extends Application<Configuration> {
     @Override
     public void run(Configuration configuration, Environment environment) {
         Resource.loadProperties('resource.properties')
-        environment.jersey().register(new SampleResource())
         environment.jersey().register(new InfoResource())
+        environment.jersey().register(new ShelfResource())
         environment.jersey().register(
                 AuthFactory.binder(
                         new BasicAuthFactory<AuthenticatedUser>(

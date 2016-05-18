@@ -12,13 +12,8 @@ ruleset {
     MethodName
 
     PackageName {
-        description = 'Verify that package name begins with \'edu.oregonstate.mist.\' and consists ' +
-                      'only of lowercase letters and numbers separated by periods.'
-        regex = '''(?x)
-                   ^(
-                     edu\\.oregonstate\\.mist # begin with edu.oregonstate.mist
-                     (\\.[a-z0-9]+)*          # periods separate lowercase alphanumeric package names
-                   )$'''
+        description = 'Verify that package name begins with \'edu.oregonstate.mist.\''
+        regex = /^edu\.oregonstate\.mist\..*/
         packageNameRequired = true
         priority = 3
     }

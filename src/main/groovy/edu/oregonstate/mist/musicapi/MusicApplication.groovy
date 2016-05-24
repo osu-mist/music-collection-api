@@ -19,14 +19,6 @@ import io.dropwizard.auth.basic.BasicAuthFactory
  */
 class MusicApplication extends Application<MusicConfiguration> {
     /**
-     * Initializes application bootstrap.
-     *
-     * @param bootstrap
-     */
-    @Override
-    public void initialize(Bootstrap<MusicConfiguration> bootstrap) {}
-
-    /**
      * Parses command-line arguments and runs the application.
      *
      * @param configuration

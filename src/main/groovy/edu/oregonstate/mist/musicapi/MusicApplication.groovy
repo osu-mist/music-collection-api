@@ -6,6 +6,7 @@ import edu.oregonstate.mist.api.AuthenticatedUser
 import edu.oregonstate.mist.api.BasicAuthenticator
 import edu.oregonstate.mist.api.NullHealthCheck
 import edu.oregonstate.mist.musicapi.MusicConfiguration
+import edu.oregonstate.mist.musicapi.resources.AlbumResource
 import edu.oregonstate.mist.musicapi.resources.ShelfResource
 import io.dropwizard.Application
 import io.dropwizard.jdbi.DBIFactory
@@ -27,11 +28,12 @@ class MusicApplication extends Application<MusicConfiguration> {
     @Override
     public void run(MusicConfiguration configuration, Environment environment) {
         def factory = new DBIFactory()
-        def jdbi = factory.build(environment, configuration.database, "jdbi")
+        def dbi = factory.build(environment, configuration.database, "jdbi")
 
         Resource.loadProperties('resource.properties')
         environment.jersey().register(new InfoResource())
-        environment.jersey().register(new ShelfResource())
+        environment.jersey().register(new AlbumResource(dbi))
+        environment.jersey().register(new ShelfResource(dbi))
         environment.jersey().register(
                 AuthFactory.binder(
                         new BasicAuthFactory<AuthenticatedUser>(

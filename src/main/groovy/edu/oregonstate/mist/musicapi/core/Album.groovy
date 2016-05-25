@@ -9,6 +9,6 @@ class Album {
     String artist
     String edition
     String status
-    Date released
-    Date created
+    String released
+    String created
 }

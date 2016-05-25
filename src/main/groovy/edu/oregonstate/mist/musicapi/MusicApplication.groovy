@@ -26,7 +26,7 @@ class MusicApplication extends Application<MusicConfiguration> {
      * @param environment
      */
     @Override
-    public void run(MusicConfiguration configuration, Environment environment) {
+    void run(MusicConfiguration configuration, Environment environment) {
         def factory = new DBIFactory()
         def dbi = factory.build(environment, configuration.database, "jdbi")
 
@@ -50,7 +50,7 @@ class MusicApplication extends Application<MusicConfiguration> {
      * @param arguments
      * @throws Exception
      */
-    public static void main(String[] arguments) throws Exception {
+    static void main(String[] arguments) throws Exception {
         new MusicApplication().run(arguments)
     }
 }

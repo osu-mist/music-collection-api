@@ -30,9 +30,9 @@ class AlbumResource extends Resource {
     @GET
     @Produces("application/json")
     Response get(@Auth AuthenticatedUser authenticatedUser, @PathParam("id") int id) {
-        def h = this.dbi.open()
         Album result
 
+        def h = this.dbi.open()
         try {
             def q = h.createQuery('''
                 SELECT b.id, b.title, a.name as artist, b.edition, s.name as status,
@@ -49,7 +49,9 @@ class AlbumResource extends Resource {
             h.close()
         }
 
-        ResponseBuilder responseBuilder = this.ok(result)
-        return responseBuilder.build()
+        if (!result) {
+            return this.notFound().build()
+        }
+        return this.ok(result).build()
     }
 }

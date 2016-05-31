@@ -32,10 +32,10 @@ class ShelfResource extends Resource {
      */
     @GET
     @Produces("application/json")
-    Response get(@Auth AuthenticatedUser authenticatedUser, @PathParam("id") int id) {
-        def h = this.dbi.open()
+    Response getShelf(@Auth AuthenticatedUser authenticatedUser, @PathParam("id") int id) {
         Shelf result
 
+        def h = this.dbi.open()
         try {
             def q = h.createQuery('SELECT id, name FROM MUS_SHELF WHERE id = ?')
             q.bind(0, id)
@@ -44,7 +44,9 @@ class ShelfResource extends Resource {
             h.close()
         }
 
-        ResponseBuilder responseBuilder = this.ok(result)
-        return responseBuilder.build()
+        if (!result) {
+            return this.notFound(result)()
+        }
+        return this.ok(result).build()
     }
 }

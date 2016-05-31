@@ -17,3 +17,8 @@ configuration.yaml
 
 # Build Properties
 build.properties
+
+# SSL Certificates
+*.cer
+*.keystore
+*.truststore

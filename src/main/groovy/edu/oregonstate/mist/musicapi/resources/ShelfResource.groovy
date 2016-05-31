@@ -1,6 +1,7 @@
 package edu.oregonstate.mist.musicapi.resources
 
 import edu.oregonstate.mist.api.Resource
+import edu.oregonstate.mist.musicapi.core.Album
 import edu.oregonstate.mist.musicapi.core.Shelf
 import edu.oregonstate.mist.api.AuthenticatedUser
 import io.dropwizard.auth.Auth
@@ -47,6 +48,33 @@ class ShelfResource extends Resource {
         if (!result) {
             return this.notFound(result)()
         }
+        return this.ok(result).build()
+    }
+
+    @GET
+    @Path('/albums')
+    @Produces("application/json")
+    Response getAlbums(@Auth AuthenticatedUser _, @PathParam("id") int id) {
+        List<Album> result
+
+        def h = this.dbi.open()
+        try {
+            def q = h.createQuery('''
+                SELECT b.id, b.title, a.name as artist, b.edition, s.name as status,
+                    to_char(b.released, 'YYYY-MM-DD') as released,
+                    to_char(b.created, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created
+                FROM mus_album b
+                JOIN mus_status s ON b.status = s.id
+                JOIN mus_artist a ON b.artist_id = a.id
+                JOIN mus_shelf_album_map m ON m.album_id = b.id
+                WHERE m.shelf_id = ?
+            ''')
+            q.bind(0, id)
+            result = q.map(Album).list()
+        } finally {
+            h.close()
+        }
+
         return this.ok(result).build()
     }
 }

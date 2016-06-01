@@ -11,9 +11,14 @@ import javax.ws.rs.Path
 import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
 import javax.ws.rs.Consumes
+import javax.ws.rs.core.Context
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.ResponseBuilder
+import javax.ws.rs.core.UriBuilder
+import javax.ws.rs.core.UriInfo
+
 import org.skife.jdbi.v2.DBI
+import org.skife.jdbi.v2.util.IntegerMapper
 
 /**
  * Sample resource class.
@@ -21,6 +26,9 @@ import org.skife.jdbi.v2.DBI
 @Path('/shelf/{id}')
 class ShelfResource extends Resource {
     private DBI dbi
+
+    @Context
+    private UriInfo uriInfo
 
     public ShelfResource(DBI dbi) {
         this.dbi = dbi
@@ -33,22 +41,30 @@ class ShelfResource extends Resource {
      */
     @GET
     @Produces("application/json")
-    Response getShelf(@Auth AuthenticatedUser authenticatedUser, @PathParam("id") int id) {
-        Shelf result
-
+    Response getShelf(@Auth AuthenticatedUser _, @PathParam("id") int id) {
         def h = this.dbi.open()
         try {
+            Shelf result
+            List<Integer> albumIds
+
             def q = h.createQuery('SELECT id, name FROM MUS_SHELF WHERE id = ?')
             q.bind(0, id)
             result = q.map(Shelf).first()
+
+            q = h.createQuery('SELECT album_id FROM MUS_SHELF_ALBUM_MAP WHERE shelf_id = ?')
+            q.bind(0, id)
+            albumIds = q.map(IntegerMapper.FIRST).list()
+
+            def ub = uriInfo.getBaseUriBuilder().path(AlbumResource)
+            result.albumUrls = new ArrayList<String>()
+            for (def i = 0; i < albumIds.size(); i++) {
+                result.albumUrls.add(ub.build(albumIds[i]).toString())
+            }
+
+            return this.ok(result).build()
         } finally {
             h.close()
         }
-
-        if (!result) {
-            return this.notFound(result)()
-        }
-        return this.ok(result).build()
     }
 
     @GET

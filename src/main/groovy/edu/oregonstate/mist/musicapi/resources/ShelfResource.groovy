@@ -17,8 +17,11 @@ import javax.ws.rs.core.Response.ResponseBuilder
 import javax.ws.rs.core.UriBuilder
 import javax.ws.rs.core.UriInfo
 
+import java.sql.ResultSet
 import org.skife.jdbi.v2.DBI
+import org.skife.jdbi.v2.StatementContext
 import org.skife.jdbi.v2.util.IntegerMapper
+import org.skife.jdbi.v2.tweak.ResultSetMapper
 
 /**
  * Sample resource class.
@@ -45,25 +48,29 @@ class ShelfResource extends Resource {
         def h = this.dbi.open()
         try {
             Shelf result
-            List<Integer> albumIds
 
             def q = h.createQuery('SELECT id, name FROM MUS_SHELF WHERE id = ?')
             q.bind(0, id)
             result = q.map(Shelf).first()
 
-            q = h.createQuery('SELECT album_id FROM MUS_SHELF_ALBUM_MAP WHERE shelf_id = ?')
-            q.bind(0, id)
-            albumIds = q.map(IntegerMapper.FIRST).list()
-
             def ub = uriInfo.getBaseUriBuilder().path(AlbumResource)
-            result.albumUrls = new ArrayList<String>()
-            for (def i = 0; i < albumIds.size(); i++) {
-                result.albumUrls.add(ub.build(albumIds[i]).toString())
-            }
+            q = h.createQuery('SELECT album_id as id FROM MUS_SHELF_ALBUM_MAP WHERE shelf_id = ?')
+            q.bind(0, id)
+            result.albumUrls = q.map(new AlbumUrlMapper(ub)).list()
 
             return this.ok(result).build()
         } finally {
             h.close()
+        }
+    }
+
+    private class AlbumUrlMapper implements ResultSetMapper<String> {
+        private UriBuilder ub
+        AlbumUrlMapper(UriBuilder ub) {
+            this.ub = ub
+        }
+        String map(int index, ResultSet r, StatementContext ctx) {
+            return this.ub.build(r.getLong("id")).toString()
         }
     }
 

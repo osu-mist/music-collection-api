@@ -11,4 +11,6 @@ class Shelf {
 
     @JsonProperty("album_urls")
     List<String> albumUrls
+
+    String created
 }

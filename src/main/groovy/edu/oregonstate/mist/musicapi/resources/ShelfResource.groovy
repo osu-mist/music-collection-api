@@ -24,9 +24,9 @@ import org.skife.jdbi.v2.util.IntegerMapper
 import org.skife.jdbi.v2.tweak.ResultSetMapper
 
 /**
- * Sample resource class.
+ * Shelf resource class.
  */
-@Path('/shelf/{id}')
+@Path('/shelf')
 class ShelfResource extends Resource {
     private DBI dbi
 
@@ -37,19 +37,46 @@ class ShelfResource extends Resource {
         this.dbi = dbi
     }
 
+    @POST
+    @Consumes("application/json")
+    @Produces("application/json")
+    Response createShelf(@Auth AuthenticatedUser _, @PathParam("id") int id, Shelf shelf) {
+        def h = this.dbi.open()
+        try {
+            def q = h.createStatement("INSERT INTO MUS_SHELF (id, name, created) VALUES (NULL, ?, SYSDATE)")
+            q.bind(0, shelf.name)
+            def gk = q.executeAndReturnGeneratedKeys()
+            def rowid = gk.first().get("rowid")
+
+            q = h.createQuery("SELECT * FROM MUS_SHELF WHERE rowid = ?")
+            q.bind(0, rowid)
+            shelf = q.map(Shelf).first()
+            shelf.albumUrls = []
+            return this.created(shelf).build()
+        } finally {
+            h.close()
+        }
+    }
+
     /**
      * Responds to GET requests by returning a message.
      *
      * @return message
      */
     @GET
+    @Path('{id}')
     @Produces("application/json")
     Response getShelf(@Auth AuthenticatedUser _, @PathParam("id") int id) {
         def h = this.dbi.open()
         try {
             Shelf result
 
-            def q = h.createQuery('SELECT id, name FROM MUS_SHELF WHERE id = ?')
+            def q = h.createQuery('''
+                SELECT id, name,
+                    to_char(created, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created
+                FROM MUS_SHELF
+                WHERE id = ?
+            ''')
             q.bind(0, id)
             result = q.map(Shelf).first()
 
@@ -64,18 +91,8 @@ class ShelfResource extends Resource {
         }
     }
 
-    private class AlbumUrlMapper implements ResultSetMapper<String> {
-        private UriBuilder ub
-        AlbumUrlMapper(UriBuilder ub) {
-            this.ub = ub
-        }
-        String map(int index, ResultSet r, StatementContext ctx) {
-            return this.ub.build(r.getLong("id")).toString()
-        }
-    }
-
     @GET
-    @Path('/albums')
+    @Path('{id}/albums')
     @Produces("application/json")
     Response getAlbums(@Auth AuthenticatedUser _, @PathParam("id") int id) {
         List<Album> result
@@ -99,5 +116,15 @@ class ShelfResource extends Resource {
         }
 
         return this.ok(result).build()
+    }
+
+    private class AlbumUrlMapper implements ResultSetMapper<String> {
+        private UriBuilder ub
+        AlbumUrlMapper(UriBuilder ub) {
+            this.ub = ub
+        }
+        String map(int index, ResultSet r, StatementContext ctx) {
+            return this.ub.build(r.getLong("id")).toString()
+        }
     }
 }

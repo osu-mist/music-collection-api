@@ -69,8 +69,8 @@ class ShelfResource extends Resource {
     Response getShelf(@Auth AuthenticatedUser _, @PathParam("id") int id) {
         def h = this.dbi.open()
         try {
-            Shelf result
-
+            // Get the shelf
+            Shelf shelf
             def q = h.createQuery('''
                 SELECT id, name,
                     to_char(created, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created
@@ -78,14 +78,22 @@ class ShelfResource extends Resource {
                 WHERE id = ?
             ''')
             q.bind(0, id)
-            result = q.map(Shelf).first()
+            shelf = q.map(Shelf).first()
+            if (shelf == null) {
+                return this.notFound().build()
+            }
 
-            def ub = uriInfo.getBaseUriBuilder().path(AlbumResource)
+            // Get album ids
             q = h.createQuery('SELECT album_id as id FROM MUS_SHELF_ALBUM_MAP WHERE shelf_id = ?')
             q.bind(0, id)
-            result.albumUrls = q.map(new AlbumUrlMapper(ub)).list()
 
-            return this.ok(result).build()
+            def ub = uriInfo.getBaseUriBuilder().path(AlbumResource)
+            shelf.albumUrls = []
+            for (Integer albumId : q.map(IntegerMapper.FIRST)) {
+                shelf.albumUrls.add(ub.build(albumId).toString())
+            }
+
+            return this.ok(shelf).build()
         } finally {
             h.close()
         }
@@ -115,16 +123,7 @@ class ShelfResource extends Resource {
             h.close()
         }
 
+        // TODO: return notFound if shelf does not exist
         return this.ok(result).build()
-    }
-
-    private class AlbumUrlMapper implements ResultSetMapper<String> {
-        private UriBuilder ub
-        AlbumUrlMapper(UriBuilder ub) {
-            this.ub = ub
-        }
-        String map(int index, ResultSet r, StatementContext ctx) {
-            return this.ub.build(r.getLong("id")).toString()
-        }
     }
 }

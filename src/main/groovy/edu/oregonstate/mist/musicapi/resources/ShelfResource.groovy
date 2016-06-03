@@ -13,15 +13,11 @@ import javax.ws.rs.Produces
 import javax.ws.rs.Consumes
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.Response
-import javax.ws.rs.core.Response.ResponseBuilder
 import javax.ws.rs.core.UriBuilder
 import javax.ws.rs.core.UriInfo
 
-import java.sql.ResultSet
 import org.skife.jdbi.v2.DBI
-import org.skife.jdbi.v2.StatementContext
 import org.skife.jdbi.v2.util.IntegerMapper
-import org.skife.jdbi.v2.tweak.ResultSetMapper
 
 /**
  * Shelf resource class.

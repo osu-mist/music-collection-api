@@ -18,6 +18,7 @@ import io.dropwizard.auth.basic.BasicAuthFactory
 /**
  * Main application class.
  */
+@groovy.transform.TypeChecked
 class MusicApplication extends Application<MusicConfiguration> {
     /**
      * Parses command-line arguments and runs the application.

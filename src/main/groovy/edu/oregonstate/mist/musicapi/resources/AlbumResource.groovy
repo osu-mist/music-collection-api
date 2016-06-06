@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response.ResponseBuilder
 import org.skife.jdbi.v2.DBI
 
 @Path('/album/{id}')
+@groovy.transform.TypeChecked
 class AlbumResource extends Resource {
     private DBI dbi
 

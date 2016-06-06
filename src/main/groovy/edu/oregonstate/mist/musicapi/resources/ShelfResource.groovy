@@ -23,6 +23,7 @@ import org.skife.jdbi.v2.util.IntegerMapper
  * Shelf resource class.
  */
 @Path('/shelf')
+@groovy.transform.TypeChecked
 class ShelfResource extends Resource {
     private DBI dbi
 

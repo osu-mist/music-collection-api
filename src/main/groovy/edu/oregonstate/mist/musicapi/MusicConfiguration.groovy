@@ -6,6 +6,7 @@ import io.dropwizard.db.DataSourceFactory
 import javax.validation.Valid
 import javax.validation.constraints.NotNull
 
+@groovy.transform.TypeChecked
 class MusicConfiguration extends Configuration {
     @NotNull
     @Valid

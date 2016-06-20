@@ -10,7 +10,6 @@ import edu.oregonstate.mist.musicapi.resources.AlbumResource
 import edu.oregonstate.mist.musicapi.resources.ShelfResource
 import io.dropwizard.Application
 import io.dropwizard.jdbi.DBIFactory
-import io.dropwizard.setup.Bootstrap
 import io.dropwizard.setup.Environment
 import io.dropwizard.auth.AuthFactory
 import io.dropwizard.auth.basic.BasicAuthFactory

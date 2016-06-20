@@ -7,16 +7,17 @@ import edu.oregonstate.mist.api.AuthenticatedUser
 import io.dropwizard.auth.Auth
 import javax.ws.rs.GET
 import javax.ws.rs.POST
+import javax.ws.rs.FormParam
 import javax.ws.rs.Path
 import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
 import javax.ws.rs.Consumes
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.Response
-import javax.ws.rs.core.UriBuilder
 import javax.ws.rs.core.UriInfo
 
 import org.skife.jdbi.v2.DBI
+import org.skife.jdbi.v2.Handle
 import org.skife.jdbi.v2.util.IntegerMapper
 
 /**
@@ -122,5 +123,34 @@ class ShelfResource extends Resource {
 
         // TODO: return notFound if shelf does not exist
         return this.ok(result).build()
+    }
+
+    @POST
+    @Path('{id}/albums')
+    @Produces('application/json')
+    Response addAlbum(@Auth AuthenticatedUser _, @PathParam("id") int id, @FormParam('album_id') int albumId) {
+        def h = this.dbi.open()
+        try {
+            if (!this.exists(h, 'mus_shelf', id)) {
+                return this.notFound().build()
+            }
+            if (!this.exists(h, 'mus_album', albumId)) {
+                return this.badRequest('no such album').build()
+            }
+            def q = h.createStatement('INSERT INTO mus_shelf_album_map (shelf_id, album_id, created) VALUES (?, ?, SYSDATE)')
+            q.bind(0, id)
+            q.bind(1, albumId)
+            q.execute()
+
+            return this.ok(albumId).build()
+        } finally {
+            h.close()
+        }
+    }
+
+    boolean exists(Handle h, String table, int id) {
+        def q = h.createQuery('SELECT 1 FROM '+table+' WHERE id = ?')
+        q.bind(0, id)
+        return q.first() != null
     }
 }

@@ -41,7 +41,7 @@ class ShelfResource extends Resource {
     Response createShelf(@Auth AuthenticatedUser _, @PathParam("id") int id, Shelf shelf) {
         def h = this.dbi.open()
         try {
-            def q = h.createStatement("INSERT INTO MUS_SHELF (id, name, created) VALUES (NULL, ?, SYSDATE)")
+            def q = h.createStatement("INSERT INTO MUS_SHELF (id, name, created) VALUES (NULL, ?, cast(SYSTIMESTAMP at time zone \'UTC\' as date))")
             q.bind(0, shelf.name)
             def gk = q.executeAndReturnGeneratedKeys()
             def rowid = gk.first().get("rowid")
@@ -137,7 +137,7 @@ class ShelfResource extends Resource {
             if (!this.exists(h, 'mus_album', albumId)) {
                 return this.badRequest('no such album').build()
             }
-            def q = h.createStatement('INSERT INTO mus_shelf_album_map (shelf_id, album_id, created) VALUES (?, ?, SYSDATE)')
+            def q = h.createStatement('INSERT INTO mus_shelf_album_map (shelf_id, album_id, created) VALUES (?, ?, cast(SYSTIMESTAMP at time zone \'UTC\' as date))')
             q.bind(0, id)
             q.bind(1, albumId)
             q.execute()

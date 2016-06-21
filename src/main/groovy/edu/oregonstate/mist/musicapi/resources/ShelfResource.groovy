@@ -85,7 +85,7 @@ class ShelfResource extends Resource {
             q = h.createQuery('SELECT album_id as id FROM MUS_SHELF_ALBUM_MAP WHERE shelf_id = ?')
             q.bind(0, id)
 
-            def ub = uriInfo.getBaseUriBuilder().path(AlbumResource)
+            def ub = uriInfo.getBaseUriBuilder().path(AlbumResource, 'getAlbum')
             shelf.albumUrls = []
             for (Integer albumId : q.map(IntegerMapper.FIRST)) {
                 shelf.albumUrls.add(ub.build(albumId).toString())

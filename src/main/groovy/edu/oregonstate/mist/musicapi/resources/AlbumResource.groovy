@@ -7,6 +7,8 @@ import io.dropwizard.auth.Auth
 import java.util.regex.Pattern
 import javax.ws.rs.GET
 import javax.ws.rs.POST
+import javax.ws.rs.PUT
+import javax.ws.rs.DELETE
 import javax.ws.rs.Path
 import javax.ws.rs.PathParam
 import javax.ws.rs.Produces
@@ -100,6 +102,93 @@ class AlbumResource extends Resource {
 
             album = this.getAlbumByRowid(h, rowid)
             return this.ok(album).build()
+        } finally {
+            h.close()
+        }
+    }
+
+    @PUT
+    @Path("{id}")
+    @Consumes('application/json')
+    @Produces('application/json')
+    Response updateAlbum(@Auth AuthenticatedUser _, @PathParam("id") int id, Album newAlbum) {
+        def h = this.dbi.open()
+        try {
+            if (newAlbum.id != null && newAlbum.id != id) {
+                return this.badRequest('id property does not match url').build()
+            }
+
+            // Check if album exists
+            def oldAlbum = this.getAlbumById(h, id)
+            if (oldAlbum == null) {
+                return this.notFound().build()
+            }
+
+            // Get artist id
+            def artistId = this.getOrCreateArtist(h, newAlbum.artist)
+
+            // Get status id
+            def statusId = this.getStatus(h, newAlbum.status)
+            if (statusId == null) {
+                return this.badRequest('invalid status').build()
+            }
+
+            // validate release date
+            if (newAlbum.released != null) {
+                if (!releaseDatePattern.matcher(newAlbum.released).matches()) {
+                    return this.badRequest('invalid release date').build()
+                }
+            }
+
+            // Do the easy stuff
+            def q = h.createStatement('''
+                UPDATE mus_album
+                SET title = :title,
+                    edition = :edition,
+                    status = :status,
+                    artist_id = :artist_id
+                WHERE id = :id
+            ''')
+            q.bind("id", id)
+            q.bind("title", newAlbum.title)
+            q.bind("edition", newAlbum.edition)
+            q.bind("status", statusId.intValue())
+            q.bind("artist_id", artistId.intValue())
+            q.execute()
+
+            // Set or clear the release date
+            if (newAlbum.released) {
+                q = h.createStatement('''UPDATE mus_album SET released = to_date(:released, 'YYYY-MM-DD') WHERE id = :id''')
+                q.bind("id", id)
+                q.bind("released", newAlbum.released)
+                q.execute()
+            } else {
+                q = h.createStatement('''UPDATE mus_album SET released = NULL WHERE id = :id''')
+                q.bind("id", id)
+                q.execute()
+            }
+
+            def album = this.getAlbumById(h, id)
+            return this.ok(album).build()
+        } finally {
+            h.close()
+        }
+    }
+
+
+    @DELETE
+    @Path("{id}")
+    @Produces('application/json')
+    Response deleteAlbum(@Auth AuthenticatedUser _, @PathParam("id") int id) {
+        def h = this.dbi.open()
+        try {
+            def q = h.createQuery('SELECT id FROM mus_album WHERE id = ?')
+            if (q.bind(0, id).first() == null) {
+                return this.notFound().build()
+            }
+            h.execute('DELETE FROM mus_shelf_album_map WHERE album_id = ?', id)
+            h.execute('DELETE FROM mus_album WHERE id = ?', id)
+            return Response.noContent().build()
         } finally {
             h.close()
         }

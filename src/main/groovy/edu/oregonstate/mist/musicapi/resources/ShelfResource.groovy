@@ -148,7 +148,7 @@ class ShelfResource extends Resource {
         }
     }
 
-    boolean exists(Handle h, String table, int id) {
+    private boolean exists(Handle h, String table, int id) {
         def q = h.createQuery('SELECT 1 FROM '+table+' WHERE id = ?')
         q.bind(0, id)
         return q.first() != null

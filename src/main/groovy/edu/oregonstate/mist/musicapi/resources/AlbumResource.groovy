@@ -59,8 +59,12 @@ class AlbumResource extends Resource {
     Response createAlbum(@Auth AuthenticatedUser _, Album album) {
         def h = this.dbi.open()
         try {
-            // Get artist id
-            def artistId = this.getOrCreateArtist(h, album.artist)
+            // validate release date
+            if (album.released != null) {
+                if (!releaseDatePattern.matcher(album.released).matches()) {
+                    return this.badRequest('invalid release date').build()
+                }
+            }
 
             // Get status id
             def statusId = this.getStatus(h, album.status)
@@ -68,12 +72,8 @@ class AlbumResource extends Resource {
                 return this.badRequest('invalid status').build()
             }
 
-            // validate release date
-            if (album.released != null) {
-                if (!releaseDatePattern.matcher(album.released).matches()) {
-                    return this.badRequest('invalid release date').build()
-                }
-            }
+            // Get artist id
+            def artistId = this.getOrCreateArtist(h, album.artist)
 
             def q = h.createStatement('''
                 INSERT INTO mus_album (id, title, artist_id, edition, status, released, created)
@@ -124,8 +124,12 @@ class AlbumResource extends Resource {
                 return this.notFound().build()
             }
 
-            // Get artist id
-            def artistId = this.getOrCreateArtist(h, newAlbum.artist)
+            // validate release date
+            if (newAlbum.released != null) {
+                if (!releaseDatePattern.matcher(newAlbum.released).matches()) {
+                    return this.badRequest('invalid release date').build()
+                }
+            }
 
             // Get status id
             def statusId = this.getStatus(h, newAlbum.status)
@@ -133,12 +137,8 @@ class AlbumResource extends Resource {
                 return this.badRequest('invalid status').build()
             }
 
-            // validate release date
-            if (newAlbum.released != null) {
-                if (!releaseDatePattern.matcher(newAlbum.released).matches()) {
-                    return this.badRequest('invalid release date').build()
-                }
-            }
+            // Get artist id
+            def artistId = this.getOrCreateArtist(h, newAlbum.artist)
 
             // Do the easy stuff
             def q = h.createStatement('''
@@ -174,7 +174,6 @@ class AlbumResource extends Resource {
             h.close()
         }
     }
-
 
     @DELETE
     @Path("{id}")

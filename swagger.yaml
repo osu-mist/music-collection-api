@@ -117,7 +117,8 @@ paths:
 
     put:
       description: |
-        PUT updates an album.
+        PUT updates an album. It is not possible to set the 'id', 'url', or 'created' properties.
+        All other attributes must be provided. Missing attributes will default to empty values.
       parameters:
         - name: id
           in: path
@@ -203,14 +204,20 @@ definitions:
       artist:
         type: string
         description: Name of the artist
-      date:
+      released:
         type: string
         description: |
           Date the album was originally released.
           YYYY, YYYY-MM, or YYYY-MM-DD.
+          May be null.
+      created:
+        type: string
+        description: |
+          Date this object was created.
+          RFC3339 format, YYYY-MM-DDTHH:MM:SSZ.
       edition:
         type: string
-        description: A brief note about the format or (re)release date
+        description: A brief note about the format or (re)release date. May be empty.
       status:
         type: string
         description: 'One of "want", "have", or the empty string.'

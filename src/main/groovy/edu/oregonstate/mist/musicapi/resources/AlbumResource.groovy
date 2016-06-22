@@ -247,6 +247,9 @@ class AlbumResource extends Resource {
         q.bind("released_format", this.releaseDateFormat)
         q.bind("created_format", this.createdDateFormat)
         def result = q.map(Album).first()
+        if (result == null) {
+            return null
+        }
         if (result.title == null) { result.title = "" }
         if (result.artist == null) { result.artist = "" }
         if (result.edition == null) { result.edition = "" }
@@ -267,6 +270,9 @@ class AlbumResource extends Resource {
         q.bind("released_format", this.releaseDateFormat)
         q.bind("created_format", this.createdDateFormat)
         def result = q.map(Album).first()
+        if (result == null) {
+            return null
+        }
         if (result.title == null) { result.title = "" }
         if (result.artist == null) { result.artist = "" }
         if (result.edition == null) { result.edition = "" }

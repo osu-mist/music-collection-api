@@ -24,6 +24,8 @@ import org.skife.jdbi.v2.util.IntegerMapper
 class AlbumResource extends Resource {
     private DBI dbi
     private Pattern releaseDatePattern = Pattern.compile(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) // YYYY-MM-DD
+    private String releaseDateFormat = 'YYYY-MM-DD'
+    private String createdDateFormat = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
 
     public AlbumResource(DBI dbi) {
         this.dbi = dbi
@@ -93,9 +95,10 @@ class AlbumResource extends Resource {
             if (album.released) {
                 q = h.createStatement('''
                     UPDATE mus_album
-                    SET released = to_date(:released, 'YYYY-MM-DD')
+                    SET released = to_date(:released, :format)
                     WHERE rowid = :rowid''')
                 q.bind('released', album.released)
+                q.bind('format', this.releaseDateFormat)
                 q.bind('rowid', rowid)
                 q.execute()
             }
@@ -158,9 +161,10 @@ class AlbumResource extends Resource {
 
             // Set or clear the release date
             if (newAlbum.released) {
-                q = h.createStatement('''UPDATE mus_album SET released = to_date(:released, 'YYYY-MM-DD') WHERE id = :id''')
+                q = h.createStatement('''UPDATE mus_album SET released = to_date(:released, :format) WHERE id = :id''')
                 q.bind("id", id)
                 q.bind("released", newAlbum.released)
+                q.bind("format", this.releaseDateFormat)
                 q.execute()
             } else {
                 q = h.createStatement('''UPDATE mus_album SET released = NULL WHERE id = :id''')
@@ -232,14 +236,16 @@ class AlbumResource extends Resource {
     private Album getAlbumById(Handle h, Integer id) {
         def q = h.createQuery('''
             SELECT b.id, b.title, a.name as artist, b.edition, s.name as status,
-                to_char(b.released, 'YYYY-MM-DD') as released,
-                to_char(b.created, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created
+                to_char(b.released, :released_format) as released,
+                to_char(b.created, :created_format) as created
             FROM mus_album b
             JOIN mus_status s ON b.status = s.id
             JOIN mus_artist a ON b.artist_id = a.id
-            WHERE b.id = ?
+            WHERE b.id = :id
         ''')
-        q.bind(0, id.intValue())
+        q.bind("id", id.intValue())
+        q.bind("released_format", this.releaseDateFormat)
+        q.bind("created_format", this.createdDateFormat)
         def result = q.map(Album).first()
         if (result.title == null) { result.title = "" }
         if (result.artist == null) { result.artist = "" }
@@ -250,14 +256,16 @@ class AlbumResource extends Resource {
     private Album getAlbumByRowid(Handle h, Object rowid) {
         def q = h.createQuery('''
             SELECT b.id, b.title, a.name as artist, b.edition, s.name as status,
-                to_char(b.released, 'YYYY-MM-DD') as released,
-                to_char(b.created, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created
+                to_char(b.released, :released_format) as released,
+                to_char(b.created, :created_format) as created
             FROM mus_album b
             JOIN mus_status s ON b.status = s.id
             JOIN mus_artist a ON b.artist_id = a.id
-            WHERE b.rowid = ?
+            WHERE b.rowid = :rowid
         ''')
-        q.bind(0, rowid)
+        q.bind("rowid", rowid)
+        q.bind("released_format", this.releaseDateFormat)
+        q.bind("created_format", this.createdDateFormat)
         def result = q.map(Album).first()
         if (result.title == null) { result.title = "" }
         if (result.artist == null) { result.artist = "" }

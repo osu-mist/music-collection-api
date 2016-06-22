@@ -26,6 +26,9 @@ import org.skife.jdbi.v2.util.IntegerMapper
 @Path('/shelf')
 @groovy.transform.TypeChecked
 class ShelfResource extends Resource {
+    private String releaseDateFormat = 'YYYY-MM-DD'
+    private String createdDateFormat = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+
     private DBI dbi
 
     @Context
@@ -41,7 +44,9 @@ class ShelfResource extends Resource {
     Response createShelf(@Auth AuthenticatedUser _, @PathParam("id") int id, Shelf shelf) {
         def h = this.dbi.open()
         try {
-            def q = h.createStatement("INSERT INTO MUS_SHELF (id, name, created) VALUES (NULL, ?, cast(SYSTIMESTAMP at time zone \'UTC\' as date))")
+            def q = h.createStatement('''
+                INSERT INTO mus_shelf (id, name, created)
+                VALUES (NULL, ?, cast(SYSTIMESTAMP at time zone 'UTC' as date))''')
             q.bind(0, shelf.name)
             def gk = q.executeAndReturnGeneratedKeys()
             def rowid = gk.first().get("rowid")
@@ -70,12 +75,12 @@ class ShelfResource extends Resource {
             // Get the shelf
             Shelf shelf
             def q = h.createQuery('''
-                SELECT id, name,
-                    to_char(created, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created
+                SELECT id, name, to_char(created, :format) as created
                 FROM MUS_SHELF
-                WHERE id = ?
+                WHERE id = :id
             ''')
-            q.bind(0, id)
+            q.bind("id", id)
+            q.bind("format", this.createdDateFormat)
             shelf = q.map(Shelf).first()
             if (shelf == null) {
                 return this.notFound().build()
@@ -107,15 +112,17 @@ class ShelfResource extends Resource {
         try {
             def q = h.createQuery('''
                 SELECT b.id, b.title, a.name as artist, b.edition, s.name as status,
-                    to_char(b.released, 'YYYY-MM-DD') as released,
-                    to_char(b.created, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created
+                    to_char(b.released, :released_format) as released,
+                    to_char(b.created, :created_format) as created
                 FROM mus_album b
                 JOIN mus_status s ON b.status = s.id
                 JOIN mus_artist a ON b.artist_id = a.id
                 JOIN mus_shelf_album_map m ON m.album_id = b.id
-                WHERE m.shelf_id = ?
+                WHERE m.shelf_id = :id
             ''')
-            q.bind(0, id)
+            q.bind("id", id)
+            q.bind("released_format", this.releaseDateFormat)
+            q.bind("created_format", this.createdDateFormat)
             result = q.map(Album).list()
         } finally {
             h.close()
@@ -137,7 +144,9 @@ class ShelfResource extends Resource {
             if (!this.exists(h, 'mus_album', albumId)) {
                 return this.badRequest('no such album').build()
             }
-            def q = h.createStatement('INSERT INTO mus_shelf_album_map (shelf_id, album_id, created) VALUES (?, ?, cast(SYSTIMESTAMP at time zone \'UTC\' as date))')
+            def q = h.createStatement('''
+                INSERT INTO mus_shelf_album_map (shelf_id, album_id, created)
+                VALUES (?, ?, cast(SYSTIMESTAMP at time zone 'UTC' as date))''')
             q.bind(0, id)
             q.bind(1, albumId)
             q.execute()

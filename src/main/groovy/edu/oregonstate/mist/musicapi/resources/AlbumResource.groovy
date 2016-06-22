@@ -84,9 +84,9 @@ class AlbumResource extends Resource {
                     NULL, cast(SYSTIMESTAMP at time zone 'UTC' as date))
             ''')
             q.bind('title', album.title)
-            q.bind('artist_id', artistId.intValue())
+            q.bind('artist_id', (Object)artistId)
             q.bind('edition', album.edition)
-            q.bind('status_id', statusId.intValue())
+            q.bind('status_id', (Object)statusId)
 
             def gk = q.executeAndReturnGeneratedKeys()
             def rowid = gk.first().get('rowid')
@@ -155,8 +155,8 @@ class AlbumResource extends Resource {
             q.bind("id", id)
             q.bind("title", newAlbum.title)
             q.bind("edition", newAlbum.edition)
-            q.bind("status", statusId.intValue())
-            q.bind("artist_id", artistId.intValue())
+            q.bind("status", (Object)statusId)
+            q.bind("artist_id", (Object)artistId)
             q.execute()
 
             // Set or clear the release date
@@ -243,7 +243,7 @@ class AlbumResource extends Resource {
             LEFT JOIN mus_artist a ON b.artist_id = a.id
             WHERE b.id = :id
         ''')
-        q.bind("id", id.intValue())
+        q.bind("id", (Object)id)
         q.bind("released_format", this.releaseDateFormat)
         q.bind("created_format", this.createdDateFormat)
         def result = q.map(Album).first()

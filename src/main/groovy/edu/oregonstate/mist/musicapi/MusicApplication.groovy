@@ -1,14 +1,15 @@
-package edu.oregonstate.mist.webapiskeleton
+package edu.oregonstate.mist.musicapi
 
-import edu.oregonstate.mist.api.Configuration
 import edu.oregonstate.mist.api.Resource
 import edu.oregonstate.mist.api.InfoResource
 import edu.oregonstate.mist.api.AuthenticatedUser
 import edu.oregonstate.mist.api.BasicAuthenticator
 import edu.oregonstate.mist.api.NullHealthCheck
-import edu.oregonstate.mist.webapiskeleton.resources.SampleResource
+import edu.oregonstate.mist.musicapi.MusicConfiguration
+import edu.oregonstate.mist.musicapi.resources.AlbumResource
+import edu.oregonstate.mist.musicapi.resources.ShelfResource
 import io.dropwizard.Application
-import io.dropwizard.setup.Bootstrap
+import io.dropwizard.jdbi.DBIFactory
 import io.dropwizard.setup.Environment
 import io.dropwizard.auth.AuthFactory
 import io.dropwizard.auth.basic.BasicAuthFactory
@@ -16,15 +17,8 @@ import io.dropwizard.auth.basic.BasicAuthFactory
 /**
  * Main application class.
  */
-class SkeletonApplication extends Application<Configuration> {
-    /**
-     * Initializes application bootstrap.
-     *
-     * @param bootstrap
-     */
-    @Override
-    public void initialize(Bootstrap<Configuration> bootstrap) {}
-
+@groovy.transform.TypeChecked
+class MusicApplication extends Application<MusicConfiguration> {
     /**
      * Parses command-line arguments and runs the application.
      *
@@ -32,15 +26,19 @@ class SkeletonApplication extends Application<Configuration> {
      * @param environment
      */
     @Override
-    public void run(Configuration configuration, Environment environment) {
+    void run(MusicConfiguration configuration, Environment environment) {
+        def factory = new DBIFactory()
+        def dbi = factory.build(environment, configuration.database, "jdbi")
+
         Resource.loadProperties('resource.properties')
-        environment.jersey().register(new SampleResource())
         environment.jersey().register(new InfoResource())
+        environment.jersey().register(new AlbumResource(dbi))
+        environment.jersey().register(new ShelfResource(dbi))
         environment.jersey().register(
                 AuthFactory.binder(
                         new BasicAuthFactory<AuthenticatedUser>(
                                 new BasicAuthenticator(configuration.getCredentialsList()),
-                                'SkeletonApplication',
+                                'MusicApplication',
                                 AuthenticatedUser.class)))
         // Shut the health check warning up
         environment.healthChecks().register("null", new NullHealthCheck())
@@ -52,7 +50,7 @@ class SkeletonApplication extends Application<Configuration> {
      * @param arguments
      * @throws Exception
      */
-    public static void main(String[] arguments) throws Exception {
-        new SkeletonApplication().run(arguments)
+    static void main(String[] arguments) throws Exception {
+        new MusicApplication().run(arguments)
     }
 }

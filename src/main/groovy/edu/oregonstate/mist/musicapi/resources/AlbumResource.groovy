@@ -240,7 +240,7 @@ class AlbumResource extends Resource {
                 to_char(b.created, :created_format) as created
             FROM mus_album b
             JOIN mus_status s ON b.status = s.id
-            JOIN mus_artist a ON b.artist_id = a.id
+            LEFT JOIN mus_artist a ON b.artist_id = a.id
             WHERE b.id = :id
         ''')
         q.bind("id", id.intValue())
@@ -260,7 +260,7 @@ class AlbumResource extends Resource {
                 to_char(b.created, :created_format) as created
             FROM mus_album b
             JOIN mus_status s ON b.status = s.id
-            JOIN mus_artist a ON b.artist_id = a.id
+            LEFT JOIN mus_artist a ON b.artist_id = a.id
             WHERE b.rowid = :rowid
         ''')
         q.bind("rowid", rowid)

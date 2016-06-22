@@ -1,10 +1,9 @@
 package edu.oregonstate.mist.musicapi.resources
 
 import edu.oregonstate.mist.api.AuthenticatedUser
-import edu.oregonstate.mist.api.Resource
+import edu.oregonstate.mist.musicapi.Resource
 import edu.oregonstate.mist.musicapi.core.Album
 import io.dropwizard.auth.Auth
-import java.util.regex.Pattern
 import javax.ws.rs.GET
 import javax.ws.rs.POST
 import javax.ws.rs.PUT
@@ -23,9 +22,6 @@ import org.skife.jdbi.v2.util.IntegerMapper
 @groovy.transform.TypeChecked
 class AlbumResource extends Resource {
     private DBI dbi
-    private Pattern releaseDatePattern = Pattern.compile(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) // YYYY-MM-DD
-    private String releaseDateFormat = 'YYYY-MM-DD'
-    private String createdDateFormat = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
 
     public AlbumResource(DBI dbi) {
         this.dbi = dbi
@@ -63,7 +59,7 @@ class AlbumResource extends Resource {
         try {
             // validate release date
             if (album.released != null) {
-                if (!releaseDatePattern.matcher(album.released).matches()) {
+                if (!this.releaseDatePattern.matcher(album.released).matches()) {
                     return this.badRequest('invalid release date').build()
                 }
             }
@@ -129,7 +125,7 @@ class AlbumResource extends Resource {
 
             // validate release date
             if (newAlbum.released != null) {
-                if (!releaseDatePattern.matcher(newAlbum.released).matches()) {
+                if (!this.releaseDatePattern.matcher(newAlbum.released).matches()) {
                     return this.badRequest('invalid release date').build()
                 }
             }

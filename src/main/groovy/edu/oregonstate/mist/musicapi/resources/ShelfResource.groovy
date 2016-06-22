@@ -1,6 +1,6 @@
 package edu.oregonstate.mist.musicapi.resources
 
-import edu.oregonstate.mist.api.Resource
+import edu.oregonstate.mist.musicapi.Resource
 import edu.oregonstate.mist.musicapi.core.Album
 import edu.oregonstate.mist.musicapi.core.Shelf
 import edu.oregonstate.mist.api.AuthenticatedUser
@@ -26,9 +26,6 @@ import org.skife.jdbi.v2.util.IntegerMapper
 @Path('/shelf')
 @groovy.transform.TypeChecked
 class ShelfResource extends Resource {
-    private String releaseDateFormat = 'YYYY-MM-DD'
-    private String createdDateFormat = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'
-
     private DBI dbi
 
     @Context

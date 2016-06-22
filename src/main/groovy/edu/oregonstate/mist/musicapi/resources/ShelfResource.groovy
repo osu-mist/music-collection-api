@@ -110,6 +110,10 @@ class ShelfResource extends Resource {
 
         def h = this.dbi.open()
         try {
+            if (!this.exists(h, 'mus_shelf', id)) {
+                return this.notFound().build()
+            }
+
             def q = h.createQuery('''
                 SELECT b.id, b.title, a.name as artist, b.edition, s.name as status,
                     to_char(b.released, :released_format) as released,
@@ -128,7 +132,6 @@ class ShelfResource extends Resource {
             h.close()
         }
 
-        // TODO: return notFound if shelf does not exist
         return this.ok(result).build()
     }
 

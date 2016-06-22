@@ -83,6 +83,12 @@ class ShelfResource extends Resource {
                 return this.notFound().build()
             }
 
+            // Set shelf URL
+            def ub = uriInfo.getBaseUriBuilder()
+                .path(ShelfResource)
+                .path(ShelfResource, 'getShelf')
+            shelf.url = ub.build(id).toString()
+
             // Get album ids
             q = h.createQuery('SELECT album_id as id FROM MUS_SHELF_ALBUM_MAP WHERE shelf_id = ?')
             q.bind(0, id)

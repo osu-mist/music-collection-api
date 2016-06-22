@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
  */
 class Shelf {
     Integer id
+    String url
     String name
 
     @JsonProperty("album_urls")

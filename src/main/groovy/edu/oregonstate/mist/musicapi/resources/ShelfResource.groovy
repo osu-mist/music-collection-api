@@ -138,6 +138,7 @@ class ShelfResource extends Resource {
     @POST
     @Path('{id}/albums')
     @Produces('application/json')
+    @Consumes("application/x-www-form-urlencoded")
     Response addAlbum(@Auth AuthenticatedUser _, @PathParam("id") int id, @FormParam('album_id') int albumId) {
         def h = this.dbi.open()
         try {

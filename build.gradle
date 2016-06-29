@@ -10,6 +10,10 @@ apply plugin: 'idea'
 // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
 apply plugin: 'com.github.johnrengelman.shadow'
 
+// application properties
+archivesBaseName = 'music-collection-api'
+mainClassName = 'edu.oregonstate.mist.musicapi.MusicApplication'
+
 // https://docs.gradle.org/current/userguide/organizing_build_logic.html#sec:external_dependencies
 buildscript {
     repositories {
@@ -62,7 +66,7 @@ shadowJar {
     classifier = 'all'
     extension = jar.extension
     manifest {
-        attributes 'Main-Class': mainClass
+        attributes 'Main-Class': mainClassName
     }
     mergeServiceFiles()
 }
@@ -81,7 +85,7 @@ build.dependsOn shadowJar, groovydoc
 
 // FIXME: use ShadowJar (java -jar build/libs/web-api-skeleton-all.jar server configuration.yaml)
 task run(type: JavaExec, dependsOn: build) {
-    main = mainClass
+    main = mainClassName
     classpath = sourceSets.main.runtimeClasspath
     args = ['server', 'configuration.yaml']
 }
